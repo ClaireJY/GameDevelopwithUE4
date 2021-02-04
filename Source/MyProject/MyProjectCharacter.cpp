@@ -11,6 +11,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
+#include "MasteringInventory.h"
+#include "MasteringWeapon.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -19,6 +21,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
 AMyProjectCharacter::AMyProjectCharacter()
 {
+	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 
@@ -82,6 +85,8 @@ AMyProjectCharacter::AMyProjectCharacter()
 
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
+	
+	Inventory = CreateDefaultSubobject<UMasteringInventory>(TEXT("Inventory"));
 }
 
 void AMyProjectCharacter::BeginPlay()
@@ -89,6 +94,7 @@ void AMyProjectCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
+	
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
 	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 
@@ -102,6 +108,11 @@ void AMyProjectCharacter::BeginPlay()
 	{
 		VR_Gun->SetHiddenInGame(true, true);
 		Mesh1P->SetHiddenInGame(false, true);
+	}
+	
+	if (Inventory != nullptr)
+	{
+		Inventory->SelectBestWeapon(this);
 	}
 }
 
@@ -138,51 +149,35 @@ void AMyProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AMyProjectCharacter::LookUpAtRate);
 }
 
+void AMyProjectCharacter::EquipWeapon(TSubclassOf<class AMasteringWeapon> Weapon)
+{
+	UWorld* World = GetWorld();
+	if (World == nullptr)
+		return;
+	if (EquippedWeaponActor != nullptr)
+	{
+		World->DestroyActor(EquippedWeaponActor);
+	}
+
+	const FRotator SpawnRotation = GetActorRotation();
+	const FVector SpawnLocation = GetActorLocation();
+	FActorSpawnParameters ActorSpawnParams;
+	ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ActorSpawnParams.Owner = this;
+
+	EquippedWeaponActor = Cast<AMasteringWeapon>(World->SpawnActor(Weapon, &SpawnLocation, &SpawnRotation, ActorSpawnParams));
+	if (EquippedWeaponActor != nullptr)
+	{
+		EquippedWeaponActor->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	}
+}
+
 void AMyProjectCharacter::OnFire()
 {
-	// try and fire a projectile
-	if (ProjectileClass != NULL)
+	if (GetEquippedWeapon() != nullptr)
 	{
-		UWorld* const World = GetWorld();
-		if (World != NULL)
-		{
-			if (bUsingMotionControllers)
-			{
-				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
-				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-				World->SpawnActor<AMyProjectProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
-			}
-			else
-			{
-				const FRotator SpawnRotation = GetControlRotation();
-				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-				const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-
-				//Set Spawn Collision Handling Override
-				FActorSpawnParameters ActorSpawnParams;
-				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
-				// spawn the projectile at the muzzle
-				World->SpawnActor<AMyProjectProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-			}
-		}
-	}
-
-	// try and play the sound if specified
-	if (FireSound != NULL)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	}
-
-	// try and play a firing animation if specified
-	if (FireAnimation != NULL)
-	{
-		// Get the animation object for the arms mesh
 		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-		if (AnimInstance != NULL)
-		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
-		}
+		GetEquippedWeapon()->Fire(GetControlRotation(), AnimInstance);
 	}
 }
 

@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "MasteringWeapon.generated.h"
 #include "MyProjectProjectile.h"
+#include "MasteringWeapon.generated.h"
+
 
 UCLASS()
 class MYPROJECT_API AMasteringWeapon : public AActor
@@ -19,10 +20,10 @@ public:
 	FVector GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Projectile)
-	TSubclassOf<class AMasteringProjectile> ProjectileClass;
+	TSubclassOf<class AMyProjectProjectile> ProjectileClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	class USoundBase* FireSount;
+	class USoundBase* FireSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	class UAnimMontage* FireAnimation;
@@ -40,5 +41,6 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	void Fire(FRotator ControlRotation, class UAnimInstance* AnimInst);
 
 };

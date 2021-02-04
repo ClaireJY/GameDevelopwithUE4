@@ -35,3 +35,30 @@ void AMasteringWeapon::Tick(float DeltaTime)
 
 }
 
+void AMasteringWeapon::Fire(FRotator ControlRotation, UAnimInstance* AnimInst)
+{
+	if (ProjectileClass != nullptr)
+	{
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
+		{
+			const FVector SpawnLocation = (MuzzleLocation != nullptr) ? MuzzleLocation->GetComponentLocation() : GetActorLocation()
+				+ ControlRotation.RotateVector(GunOffset);
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+			World->SpawnActor<AMyProjectProjectile>(ProjectileClass, SpawnLocation, ControlRotation, ActorSpawnParams);
+		}
+		if (FireSound != nullptr)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+		}
+		if (FireAnimation != nullptr)
+		{
+			if (AnimInst != nullptr)
+			{
+				AnimInst->Montage_Play(FireAnimation, 1.f);
+			}
+		}
+	}
+}
+

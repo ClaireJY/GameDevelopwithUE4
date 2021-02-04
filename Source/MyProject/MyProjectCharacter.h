@@ -80,6 +80,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint32 bUsingMotionControllers : 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
+	class UMasteringInventory *Inventory;
+	class AMasteringWeapon* EquippedWeaponActor;
+
+	void EquipWeapon(TSubclassOf<class AMasteringWeapon> Weapon);
+	FORCEINLINE class AMasteringWeapon* GetEquippedWeapon()
+		const {
+		return EquippedWeaponActor;
+	};
+
+
 protected:
 	
 	/** Fires a projectile. */
