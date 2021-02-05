@@ -39,7 +39,7 @@ void AMasteringWeaponPickup::NofityActorBeginOverlap(AActor* OtherActor)
 
 	UMasteringInventory* Inventory = player->Inventory;
 	Inventory->AddWeapon(WeaponClass, Ammunition, WeaponPower);
-	Inventory->SelectBestWeapon(player);
+	Inventory->SelectBestWeapon();
 
 	Destroy();
 }

@@ -112,7 +112,7 @@ void AMyProjectCharacter::BeginPlay()
 	
 	if (Inventory != nullptr)
 	{
-		Inventory->SelectBestWeapon(this);
+		Inventory->SelectBestWeapon();
 	}
 }
 
@@ -147,6 +147,9 @@ void AMyProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAxis("TurnRate", this, &AMyProjectCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AMyProjectCharacter::LookUpAtRate);
+
+	PlayerInputComponent->BindAction("InventoryUp", IE_Pressed, this, &AMyProjectCharacter::SelectNextWeapon);
+	PlayerInputComponent->BindAction("InventoryDown", IE_Pressed, this, &AMyProjectCharacter::SelectPreviousWeapon);
 }
 
 void AMyProjectCharacter::EquipWeapon(TSubclassOf<class AMasteringWeapon> Weapon)
@@ -292,4 +295,14 @@ bool AMyProjectCharacter::EnableTouchscreenMovement(class UInputComponent* Playe
 	}
 	
 	return false;
+}
+
+void AMyProjectCharacter::SelectNextWeapon()
+{
+	Inventory->SelectNextWeapon();
+}
+
+void AMyProjectCharacter::SelectPreviousWeapon()
+{
+	Inventory->SelectPreviousWeapon();
 }

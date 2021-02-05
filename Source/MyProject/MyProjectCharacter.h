@@ -90,6 +90,9 @@ public:
 		return EquippedWeaponActor;
 	};
 
+	void SelectNextWeapon();
+	void SelectPreviousWeapon();
+
 
 protected:
 	

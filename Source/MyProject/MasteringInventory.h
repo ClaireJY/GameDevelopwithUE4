@@ -43,16 +43,20 @@ public:
 	TSubclassOf<class AMasteringWeapon> DefaultWeapon;
 	void SelectBestWeapon();
 	void SelectWeapon(TSubclassOf <class AMasteringWeapon> Weapon);
+	void SelectNextWeapon();
+	void SelectPreviousWeapon();
 	void AddWeapon(TSubclassOf<class AMasteringWeapon> weapon, int AmmoCount, uint8 WeaponPower);
+	int FindCurrentWeaponIndex() const;
 
-	FORCEINLINE TSubclassOf<class AMasteringWeapon>GetCurrentWeapon() const { return CurrentWeapon; }
+	FORCEINLINE TSubclassOf<class AMasteringWeapon> GetCurrentWeapon() const { return CurrentWeapon; }
 
 	void ChangeAmmo(TSubclassOf<class AMasteringWeapon> Weapon, const int ChangeAmount);
 
 	protected:
-		TArray<TSubclassOf<class AMasteringWeapon>> weaponArray;
+		TArray<FWeaponProperties> WeaponArray;
 		TSubclassOf<class AMasteringWeapon> CurrentWeapon;
+		
 		int CurrentWeaponPower = -1;
-		class AMasteringCharacter* MyOwner;
+		class AMyProjectCharacter* MyOwner;
 		
 };
